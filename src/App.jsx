@@ -16,6 +16,7 @@ function App() {
   const [isSession, setIsSession] = useState(true);
   const [timer, setTimer] = useState(1500);
   const [isRunning, setIsRunning] = useState(false);
+  const [intervalID, setIntervalID] = useState(0);
   const Alarm = useRef(null);
 
   const playAlarm = () => {
@@ -87,13 +88,49 @@ function App() {
     setIsSession(true);
     Alarm.current.pause();
     Alarm.current.currentTime = 0;
+    if (intervalID !== 0) {
+      clearInterval(intervalID);
+      setIntervalID(0);
+    }
   };
 
   const playStop = () => {
     setIsRunning(!isRunning);
-    playAlarm();
+    if (!isRunning) {
+      const second = 1000;
+      let currentTime = new Date().getTime();
+      let targetTime = new Date().getTime() + second;
+      let isSessionVariable = isSession;
+      let timerInterval = setInterval(() => {
+        currentTime = new Date().getTime();
+        if (currentTime > targetTime) {
+          setTimer((prev) => {
+            if (prev <= 0) {
+              let newTimer;
+              if (isSessionVariable) {
+                newTimer = sessionTime;
+              } else {
+                newTimer = breakTime;
+              }
+              setIsSession((prev) => {
+                isSessionVariable = !prev;
+                return !prev;
+              });
+              playAlarm();
+              return newTimer;
+            }
+            return prev - 1;
+          });
+          targetTime += second;
+        }
+      }, 50);
+      setIntervalID(timerInterval);
+    }
+    if (isRunning) {
+      clearInterval(intervalID);
+      setIntervalID(0);
+    }
   };
-
   return (
     <>
       <audio ref={Alarm} src={alarmSound} id="beep"></audio>

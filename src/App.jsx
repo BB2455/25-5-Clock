@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import "./styles/styles.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -8,6 +8,7 @@ import {
   faPause,
   faRedo,
 } from "@fortawesome/free-solid-svg-icons";
+import alarmSound from "./assets/Alarm.mp3";
 
 function App() {
   const [sessionTime, setSessionTime] = useState(1500);
@@ -15,6 +16,12 @@ function App() {
   const [isSession, setIsSession] = useState(true);
   const [timer, setTimer] = useState(1500);
   const [isRunning, setIsRunning] = useState(false);
+  const Alarm = useRef(null);
+
+  const playAlarm = () => {
+    Alarm.current.currentTime = 0;
+    Alarm.current.play();
+  };
 
   const formatTime = (time, type) => {
     const minutes = Math.floor(time / 60);
@@ -78,15 +85,18 @@ function App() {
     setBreakTime(300);
     setTimer(1500);
     setIsSession(true);
+    Alarm.current.pause();
+    Alarm.current.currentTime = 0;
   };
 
   const playStop = () => {
     setIsRunning(!isRunning);
+    playAlarm();
   };
 
   return (
     <>
-      <audio id="beep"></audio>
+      <audio ref={Alarm} src={alarmSound} id="beep"></audio>
       <header>
         <h1>25 + 5 Clock</h1>
       </header>

@@ -20,7 +20,6 @@ function App() {
   const Alarm = useRef(null);
 
   const playAlarm = () => {
-    Alarm.current.currentTime = 0;
     Alarm.current.play();
   };
 
@@ -116,8 +115,11 @@ function App() {
                 isSessionVariable = !prev;
                 return !prev;
               });
-              playAlarm();
+
               return newTimer;
+            }
+            if (prev - 1 === 0) {
+              playAlarm();
             }
             return prev - 1;
           });
@@ -133,7 +135,7 @@ function App() {
   };
   return (
     <>
-      <audio ref={Alarm} src={alarmSound} id="beep"></audio>
+      <audio ref={Alarm} src={alarmSound} preload="auto" id="beep"></audio>
       <header>
         <h1>25 + 5 Clock</h1>
       </header>

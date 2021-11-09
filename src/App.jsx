@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./styles/styles.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -38,46 +38,31 @@ function App() {
 
   const updateSessionTime = (amount, type) => {
     if (isRunning) return;
-    let newTime;
-    switch (type) {
-      case "increment":
-        if (sessionTime + amount > 60 * 60) {
-          return;
-        }
-        newTime = sessionTime + amount;
-        break;
-      case "decrement":
-        if (sessionTime - amount < 60) {
-          return;
-        }
-        newTime = sessionTime - amount;
-        break;
-      default:
-        break;
+    if (type === "increment") {
+      if (sessionTime + amount > 60 * 60) {
+        return;
+      }
+      setSessionTime(sessionTime + amount);
+    } else if (type === "decrement") {
+      if (sessionTime - amount < 60) {
+        return;
+      }
+      setSessionTime(sessionTime - amount);
     }
-    if (!isRunning) {
-      setTimer(newTime);
-    }
-    setSessionTime(newTime);
   };
 
   const updateBreakTime = (amount, type) => {
     if (isRunning) return;
-    switch (type) {
-      case "increment":
-        if (breakTime + amount > 60 * 60) {
-          return;
-        }
-        setBreakTime(breakTime + amount);
-        break;
-      case "decrement":
-        if (breakTime - amount < 60) {
-          return;
-        }
-        setBreakTime(breakTime - amount);
-        break;
-      default:
-        break;
+    if (type === "increment") {
+      if (breakTime + amount > 60 * 60) {
+        return;
+      }
+      setBreakTime(breakTime + amount);
+    } else if (type === "decrement") {
+      if (breakTime - amount < 60) {
+        return;
+      }
+      setBreakTime(breakTime - amount);
     }
   };
 
@@ -96,45 +81,37 @@ function App() {
   };
 
   const playStop = () => {
-    setIsRunning(!isRunning);
-    if (!isRunning) {
-      const second = 1000;
-      let currentTime = new Date().getTime();
-      let targetTime = new Date().getTime() + second;
-      let isSessionVariable = isSession;
-      let timerInterval = setInterval(() => {
-        currentTime = new Date().getTime();
-        if (currentTime > targetTime) {
-          setTimer((prev) => {
-            if (prev <= 0) {
-              let newTimer;
-              if (isSessionVariable) {
-                newTimer = sessionTime;
-              } else {
-                newTimer = breakTime;
-              }
-              setIsSession((prev) => {
-                isSessionVariable = !prev;
-                return !prev;
-              });
-
-              return newTimer;
-            }
-            if (prev - 1 === 0) {
-              playAlarm();
-            }
-            return prev - 1;
-          });
-          targetTime += second;
-        }
-      }, 50);
-      setIntervalID(timerInterval);
-    }
-    if (isRunning) {
+    if (!intervalID) {
+      setIntervalID(
+        setInterval(() => {
+          setTimer((prev) => prev - 1);
+        }, 1000)
+      );
+      setIsRunning(true);
+    } else {
       clearInterval(intervalID);
       setIntervalID(0);
+      setIsRunning(false);
     }
   };
+
+  useEffect(() => {
+    setTimer(sessionTime);
+  }, [sessionTime]);
+
+  useEffect(() => {
+    if (timer === 0) {
+      playAlarm();
+      if (isSession) {
+        setTimer(breakTime);
+        setIsSession(false);
+      } else {
+        setTimer(sessionTime);
+        setIsSession(true);
+      }
+    }
+  }, [timer, isSession, breakTime, sessionTime]);
+
   return (
     <>
       <audio ref={Alarm} src={alarmSound} preload="auto" id="beep"></audio>

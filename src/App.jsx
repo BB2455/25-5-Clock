@@ -37,6 +37,7 @@ function App() {
   };
 
   const updateSessionTime = (amount, type) => {
+    if (isRunning) return;
     let newTime;
     switch (type) {
       case "increment":
@@ -61,6 +62,7 @@ function App() {
   };
 
   const updateBreakTime = (amount, type) => {
+    if (isRunning) return;
     switch (type) {
       case "increment":
         if (breakTime + amount > 60 * 60) {
